@@ -1,0 +1,30 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+}
+
+body {
+  margin: 2rem auto;
+  color: #333;
+  width: 80vw;
+}
+
+a {
+  text-decoration: none;
+  border-bottom: 1px dotted blue;
+  color: blue;
+}
+
+li.selected {
+  color: green;
+}
+li.selected::after {
+  content:'√';
+}
+
+label{
+  display: block;
+}
