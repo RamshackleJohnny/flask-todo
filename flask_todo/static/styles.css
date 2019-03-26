@@ -28,3 +28,7 @@ li.selected::after {
 label{
   display: block;
 }
+
+h1{
+  text-align: center;
+}
