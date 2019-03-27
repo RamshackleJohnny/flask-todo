@@ -1,41 +1,22 @@
-import sqlite3
+import psycopg2
+from psycopg2 import Error
 
-import click
-from flask import current_app, g
-from flask.cli import with_appcontext
-
-
-def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
-    return g.db
-
-
-def close_db(e=None):
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
-
-def init_db():
-    db = get_db()
-
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
-
-
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    init_db()
-    click.echo('Initialized the database.')
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
+def first():
+    try:
+        connection = psycopg2.connect(database = "flask_todo")
+        cursor = connection.cursor()
+        create_table_query = '''CREATE TABLE list
+            (created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            item           TEXT    NOT NULL,
+            done         BOOLEAN NOT NULL); '''
+        cursor.execute(create_table_query)
+        connection.commit()
+        print("Table created")
+    except (Exception, psycopg2.DatabaseError) as error :
+        print ("Can't do", error)
+    finally:
+        #closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+            print("Connection is closed")

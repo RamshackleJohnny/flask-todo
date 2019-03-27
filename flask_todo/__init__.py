@@ -1,15 +1,14 @@
 import os
-
+import psycopg2
 from flask import Flask, request, make_response, render_template
 
-from flask_todo.db import get_db
+import flask_todo.db
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flask_todo.sqlite'),
     )
 
     if test_config is None:
@@ -17,27 +16,29 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    from . import db
-    db.init_app(app)
 
     @app.route('/')
     def index():
+        connection = psycopg2.connect(database = "flask_todo")
+        cursor = connection.cursor()
+        connection.commit()
+
         return render_template('index.html')
 
     @app.route('/new', methods=('GET', 'POST'))
     def ne():
         if request.method == 'POST':
-            db = get_db()
             item = request.form['item']
-            done = 'FALSE'
-            error = None
-            if error is None:
-                db.execute(
-                    'INSERT INTO list (item, done)'
-                    ' VALUES (?, FALSE)',
-                    (item)
-                )
-                db.commit()
+            connection = psycopg2.connect(database = "flask_todo")
+            cursor = connection.cursor()
+            send_it = f''' INSERT INTO list (item,done) VALUES ('{item}',FALSE);'''
+            cursor.execute(send_it)
+            connection.commit()
+            print("WE SENT IT")
+            cursor.close()
+            connection.close()
+            print("Now that we sent it, its closed")
+
             return render_template('index.html')
         return render_template('new.html')
 
@@ -45,9 +46,5 @@ def create_app(test_config=None):
     @app.route('/delete')
     def dal():
         return render_template('delete.html')
-
-
-
-
 
     return app
