@@ -2,12 +2,14 @@ import os
 
 from flask import Flask, request, make_response, render_template
 
+from flask_todo.db import get_db
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
         SECRET_KEY='dev',
+        DATABASE=os.path.join(app.instance_path, 'flask_todo.sqlite'),
     )
 
     if test_config is None:
@@ -25,16 +27,18 @@ def create_app(test_config=None):
     @app.route('/new', methods=('GET', 'POST'))
     def ne():
         if request.method == 'POST':
-            item = request.form['item']
-            error = None
             db = get_db()
-            db.execute(
-                'INSERT INTO list (item, done)'
-                ' VALUES (?, FALSE)',
-                (item, done)
-            )
-            db.commit()
-            return redirect('index.html')
+            item = request.form['item']
+            done = 'FALSE'
+            error = None
+            if error is None:
+                db.execute(
+                    'INSERT INTO list (item, done)'
+                    ' VALUES (?, FALSE)',
+                    (item)
+                )
+                db.commit()
+            return render_template('index.html')
         return render_template('new.html')
 
 
