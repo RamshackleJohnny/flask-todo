@@ -21,9 +21,10 @@ def create_app(test_config=None):
     def index():
         connection = psycopg2.connect(database = "flask_todo")
         cursor = connection.cursor()
-        connection.commit()
-
-        return render_template('index.html')
+        cursor.execute('''SELECT * FROM list''')
+        list = cursor.fetchall()
+        connection.close()
+        return render_template('index.html', list=list)
 
     @app.route('/new', methods=('GET', 'POST'))
     def ne():
