@@ -1,7 +1,6 @@
 import os
 import psycopg2
 from flask import Flask, request, make_response, render_template
-
 import flask_todo.db
 
 def create_app(test_config=None):
@@ -17,13 +16,23 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
 
-    @app.route('/')
+    @app.route('/', methods=('GET', 'POST'))
     def index():
         connection = psycopg2.connect(database = "flask_todo")
         cursor = connection.cursor()
         cursor.execute('''SELECT * FROM list''')
         list = cursor.fetchall()
         connection.close()
+        if request.method == 'POST':
+            print('We made it this far')
+            done = request.form['done']
+            print(done)
+            connection = psycopg2.connect(database = "flask_todo")
+            cursor = connection.cursor()
+            cursor.execute("UPDATE list SET done = True WHERE item = (%s)", (done))
+            connection.commit()
+            cursor.close()
+            connection.close()
         return render_template('index.html', list=list)
 
     @app.route('/new', methods=('GET', 'POST'))
@@ -32,15 +41,14 @@ def create_app(test_config=None):
             item = request.form['item']
             connection = psycopg2.connect(database = "flask_todo")
             cursor = connection.cursor()
-            send_it = f''' INSERT INTO list (item,done) VALUES ('{item}',FALSE);'''
-            cursor.execute(send_it)
+            cursor.execute("INSERT INTO list (item,done) VALUES (%s, %s)", (item, False))
             connection.commit()
             print("WE SENT IT")
             cursor.close()
             connection.close()
             print("Now that we sent it, its closed")
 
-            return render_template('index.html')
+            return render_template('new.html', item=item)
         return render_template('new.html')
 
 
