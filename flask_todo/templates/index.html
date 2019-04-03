@@ -5,7 +5,7 @@
 {% for item in list %}
   <article class="post">
     <p class="body">{{ item }}</p>
-    <form action="/" method="post">
+    <form action='' method="post">
       <button type="submit" name="complete" id="done" value="{{ item }}">Complete</button>
     </form>
     <button type="submit" name="delete">Delete</button>
