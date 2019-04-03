@@ -1,1 +1,1 @@
-web: waitress-serve --call 'flask_todo:create_app'
+web: gunicorn gettingstarted.wsgi --log-file -
